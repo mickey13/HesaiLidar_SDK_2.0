@@ -82,17 +82,6 @@ if(${CUDA_FOUND})
   file(GLOB CURRENT_SOURCES  *.cpp *.cu)
   source_group("Include" FILES ${CURRENT_HEADERS}) 
   source_group("Source" FILES ${CURRENT_SOURCES}) 
-  CUDA_ADD_EXECUTABLE(sample_gpu ${CURRENT_HEADERS} ${CURRENT_SOURCES} 
-  ./test/test.cu
-  ./libhesai/UdpParserGpu/src/buffer.cu)
-  target_link_libraries(sample_gpu
-  source_lib
-  container_lib
-  ptcClient_lib
-  log_lib
-  ptcParser_lib
-  ${OPENSSL_LIBRARIES}
-)
 else(${CUDA_FOUND})
 	MESSAGE(STATUS "cuda not found!")
 endif(${CUDA_FOUND})
