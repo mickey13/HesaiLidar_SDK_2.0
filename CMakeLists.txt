@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 14)
 PROJECT(Template)
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 0)
-set(VERSION_TINY  7)
+set(VERSION_TINY  8)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/Version.h"
@@ -17,9 +17,10 @@ add_definitions(-O3)
 add_compile_options(-Wall)
 
 # 设置生成平台为 x64
-if(_MSC_VER)
+if(MSVC)
 set(CMAKE_GENERATOR_PLATFORM x64)
 set(OPENSSL_ROOT_DIR "C:/Program Files/OpenSSL-Win64")
+set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
 endif()
 
 
@@ -27,6 +28,8 @@ include_directories("${PROJECT_BINARY_DIR}")
 find_package(OpenSSL REQUIRED)
 add_definitions(-DQT_MESSAGELOGCONTEXT)
 add_subdirectory(libhesai)
+find_package(Eigen3 REQUIRED)
+include_directories(EIGEN3 INCLUDE_DIR)
 
 include_directories(
   libhesai

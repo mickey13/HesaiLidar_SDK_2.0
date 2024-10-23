@@ -179,8 +179,8 @@ struct HS_LIDAR_TAIL_ME_V4 {
   static const uint8_t kStrongestReturn = 0x37;
   static const uint8_t kLastReturn = 0x38;
   static const uint8_t kDualReturn = 0x39;
-  static const uint8_t kFirstSecondReturn = 0x3a;
-  static const uint8_t kStongestFirstReturn = 0x3b;
+  static const uint8_t kFirstLastReturn = 0x3b;
+  static const uint8_t kStongestFirstReturn = 0x3c;
 
   ReservedInfo1 m_reservedInfo1;
   ReservedInfo2 m_reservedInfo2;
@@ -216,13 +216,13 @@ struct HS_LIDAR_TAIL_ME_V4 {
   bool IsLastReturn() const { return m_u8ReturnMode == kLastReturn; }
   bool IsStrongestReturn() const { return m_u8ReturnMode == kStrongestReturn; }
   bool IsDualReturn() const { return m_u8ReturnMode == kDualReturn; }
-  bool IsFirstSecondReturn() const {
-    return m_u8ReturnMode == kFirstSecondReturn;
+  bool IsFirstLastReturn() const {
+    return m_u8ReturnMode == kFirstLastReturn;
   }
   bool IsStongestFirstReturn() const {
     return m_u8ReturnMode == kStongestFirstReturn;
   }
-  int64_t GetMicroLidarTimeU64() const {
+  uint64_t GetMicroLidarTimeU64() const {
     if (m_u8UTC[0] != 0) {
 			struct tm t = {0};
 			t.tm_year = m_u8UTC[0];
@@ -244,10 +244,7 @@ struct HS_LIDAR_TAIL_ME_V4 {
 		}
 		else {
       uint32_t utc_time_big = *(uint32_t*)(&m_u8UTC[0] + 2);
-      int64_t unix_second = ((utc_time_big >> 24) & 0xff) |
-              ((utc_time_big >> 8) & 0xff00) |
-              ((utc_time_big << 8) & 0xff0000) |
-              ((utc_time_big << 24));
+      uint64_t unix_second = big_to_native(utc_time_big);
       return unix_second * 1000000 + GetTimestamp();
 		}
   }
@@ -274,61 +271,6 @@ struct HS_LIDAR_TAIL_SEQ_NUM_ME_V4 {
 
   uint32_t GetSeqNum() const { return little_to_native(m_u32SeqNum); }
   static uint32_t GetSeqNumSize() { return sizeof(m_u32SeqNum); }
-
-  void CalPktLoss(uint32_t &u32StartSeqNum, uint32_t &u32LastSeqNum, uint32_t &u32LossCount, 
-        uint32_t &u32StartTime, uint32_t &u32TotalLossCount, uint32_t &u32TotalStartSeqNum) const {
-    // bool print = false;
-    if (u32StartSeqNum == 0) {
-      u32LossCount = 0;
-      u32TotalLossCount = 0;
-      u32StartTime = GetMicroTickCount();
-      u32StartSeqNum = m_u32SeqNum;
-      u32LastSeqNum = m_u32SeqNum;
-      u32TotalStartSeqNum = m_u32SeqNum;
-      return;
-    }
-    if (m_u32SeqNum - u32LastSeqNum > 1) {
-      u32LossCount += (m_u32SeqNum - u32LastSeqNum - 1);
-      u32TotalLossCount += (m_u32SeqNum - u32LastSeqNum - 1);
-      // print = true;
-      // if (m_u32SeqNum - u32LastSeqNum - 1 > 1000)
-      // printf("%d,  %u, %u\n", m_u32SeqNum - u32LastSeqNum - 1, u32LastSeqNum,
-      // m_u32SeqNum);
-    }
-
-    // print log every 1s
-    if (u32LossCount != 0 && GetMicroTickCount() - u32StartTime >= 1 * 1000 * 1000) {
-      printf("pkt loss freq: %u/%u\n", u32LossCount,
-             m_u32SeqNum - u32StartSeqNum);
-      u32LossCount = 0;
-      u32StartTime = GetMicroTickCount();
-      u32StartSeqNum = m_u32SeqNum;
-    }
-
-    u32LastSeqNum = m_u32SeqNum;
-  }
-
-  // void CalPktLoss(uint32_t &u32StartSeqNum, uint32_t &u32LastSeqNum, uint32_t &u32LossCount, uint32_t &u32StartTime) const {
-  //   // bool print = false;
-  //   if (m_u32SeqNum - u32LastSeqNum > 1) {
-  //     u32LossCount += (m_u32SeqNum - u32LastSeqNum - 1);
-  //     // print = true;
-  //     // if (m_u32SeqNum - u32LastSeqNum - 1 > 1000)
-  //     // printf("%d,  %u, %u\n", m_u32SeqNum - u32LastSeqNum - 1, u32LastSeqNum,
-  //     // m_u32SeqNum);
-  //   }
-
-  //   // print log every 1s
-  //   if (GetMicroTickCount() - u32StartTime >= 1 * 1000 * 1000) {
-  //     printf("pkt loss freq: %u/%u\n", u32LossCount,
-  //            m_u32SeqNum - u32StartSeqNum);
-  //     u32LossCount = 0;
-  //     u32StartTime = GetMicroTickCount();
-  //     u32StartSeqNum = m_u32SeqNum;
-  //   }
-
-  //   u32LastSeqNum = m_u32SeqNum;
-  // }
 
   void Print() const { 
     printf("HS_LIDAR_TAIL_SEQ_NUM_ME_V4:\n");
